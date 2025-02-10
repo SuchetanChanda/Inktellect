@@ -4,14 +4,17 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { use } from "react";
 import { Button } from "./ui/button";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 function Sidebar() {
   const router = useRouter();
   const { closeMobileNav, isMobileNavOpen } = use(NavigationContext);
 
+  const chats = useQuery(api.chats.listChats);
   const createChat = useMutation(api.chats.createChat);
+  const deleteChat = useMutation(api.chats.deleteChat);
   // const handleClick = () => {
   //     router.push(`/dashboard/chat/${chat._id}`);
   //     closeMobileNav();
@@ -23,6 +26,10 @@ function Sidebar() {
       router.push(`/dashboard/chat/${chatID}`);
       closeMobileNav();
     }
+  };
+  const handleDeleteChat = async (id: Id<"chats">) => {
+    await deleteChat({ id });
+    if (window.location.pathname.includes(id)) router.push("/dashboard");
   };
   return (
     <>
