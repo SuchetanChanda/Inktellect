@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import ChatRow from "./ChatRow";
 
 function Sidebar() {
   const router = useRouter();
@@ -15,10 +16,6 @@ function Sidebar() {
   const chats = useQuery(api.chats.listChats);
   const createChat = useMutation(api.chats.createChat);
   const deleteChat = useMutation(api.chats.deleteChat);
-  // const handleClick = () => {
-  //     router.push(`/dashboard/chat/${chat._id}`);
-  //     closeMobileNav();
-  //   };
 
   const handleNewChat = async () => {
     const chatID = await createChat({ title: "New Chat" });
@@ -57,9 +54,9 @@ function Sidebar() {
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-2.5 p-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-          {/* {chats?.map((chat) => (
+          {chats?.map((chat) => (
             <ChatRow key={chat._id} chat={chat} onDelete={handleDeleteChat} />
-          ))} */}
+          ))}
         </div>
       </div>
     </>
