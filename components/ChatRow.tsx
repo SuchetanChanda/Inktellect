@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { use } from "react";
 import { Button } from "./ui/button";
 import { TrashIcon } from "@radix-ui/react-icons";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 function ChatRow({
   chat,
@@ -14,7 +16,7 @@ function ChatRow({
 }) {
   const router = useRouter();
   const { closeMobileNav } = use(NavigationContext);
-  const lastMessage = null;
+  const lastMessage = useQuery(api.messages.lastMessage, { chatId: chat._id });
   const handleClick = () => {
     router.push(`/dashboard/chat/${chat._id}`);
     closeMobileNav();
@@ -29,15 +31,14 @@ function ChatRow({
         <div className="flex justify-between items-start">
           {" "}
           <p className="text-sm text-gray-600 truncate flex-1 font-medium">
-            Chat
-            {/* {lastMessage ? (
+            {lastMessage ? (
               <>
-                {lastMessage.role === "user" ? "You: " : "AI: "}
+                {lastMessage.role === "user" ? "You: " : "Inktellect: "}
                 {lastMessage.content.replace(/\\n/g, "\n")}
               </>
             ) : (
               <span className="text-gray-400">New conversation</span>
-            )} */}
+            )}
           </p>
           <Button
             variant="ghost"
