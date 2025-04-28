@@ -4,6 +4,7 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { ArrowRight } from "lucide-react";
+import { ChatRequestBody } from "@/lib/types";
 
 interface ChatInterfaceProps {
   chatId: Id<"chats">;
@@ -41,6 +42,43 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
     } as Doc<"messages">;
 
     setMessages((prev) => [...prev, optimisticUserMessage]);
+
+    //track complete response for saving to database
+    let fullResponse = "";
+
+    // start streaming response
+    try {
+      const requestBody: ChatRequestBody = {
+        messages: messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        newMessage: trimmedInput,
+        chatId: chatId,
+      };
+
+      // initialize SSE connection
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+      if (!response.body) throw new Error("No response body found");
+    } catch (error) {
+      console.error("Error sending message: " + error);
+      // delete the optimistic message
+      setMessages((prev) =>
+        prev.filter((msg) => msg._id != optimisticUserMessage._id)
+      );
+
+      setStreamedResponse("error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,17 +89,17 @@ function ChatInterface({ chatId, initialMessages }: ChatInterfaceProps) {
           <div
             key={message._id}
             className={`flex ${
-              message.role === "user"
-               ? "justify-end"
-                : "justify-start"
+              message.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
             <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center space-x-2">
                 <div className="text-sm text-gray-600">
-                  {message.role === "user"? "You" : "Inktellect"}
+                  {message.role === "user" ? "You" : "Inktellect"}
                 </div>
-                <div className="text-xs text-gray-400">{new Date(message.createdAt).toLocaleString()}</div>
+                <div className="text-xs text-gray-400">
+                  {new Date(message.createdAt).toLocaleString()}
+                </div>
               </div>
               <div className="text-sm text-gray-800">{message.content}</div>
             </div>
